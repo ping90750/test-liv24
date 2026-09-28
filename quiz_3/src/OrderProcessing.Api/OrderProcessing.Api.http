@@ -1,0 +1,36 @@
+@host = http://localhost:5080
+
+### Success (201)
+POST {{host}}/orders
+Content-Type: application/json
+Idempotency-Key: demo-001
+
+{ "userId": 1, "items": [ { "productId": 2, "quantity": 2 } ], "couponCode": "DIS10" }
+
+### Same Idempotency-Key again: same order, no second charge
+POST {{host}}/orders
+Content-Type: application/json
+Idempotency-Key: demo-001
+
+{ "userId": 1, "items": [ { "productId": 2, "quantity": 2 } ], "couponCode": "DIS10" }
+
+### Card declined (402) - stock is released
+POST {{host}}/orders
+Content-Type: application/json
+Idempotency-Key: demo-002
+
+{ "userId": 3, "items": [ { "productId": 1, "quantity": 1 } ] }
+
+### Insufficient stock (409)
+POST {{host}}/orders
+Content-Type: application/json
+Idempotency-Key: demo-003
+
+{ "userId": 1, "items": [ { "productId": 3, "quantity": 1 }, { "productId": 3, "quantity": 1 } ] }
+
+### Invalid quantity (400)
+POST {{host}}/orders
+Content-Type: application/json
+Idempotency-Key: demo-004
+
+{ "userId": 1, "items": [ { "productId": 2, "quantity": -5 } ] }
